@@ -45,8 +45,14 @@ the response deadline. Custom HttpClient builders can change TLS, redirects and
 connection settings. Retain HTTPS and certificate verification in production.
 
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 11/17/21/25. Cancellation before headers, HTTP/2, other OS/JDKs, Android and other
-Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
+Java 11/17/21/25. Before response headers arrive, deadline cancellation closes the
+HTTP/1.1 peer connection on all four tested runtimes. Caller interruption closes
+it on Java 17/21/25, but **Java 11 leaves the peer connection open during the
+three-second observation window**, even though the caller returns with its interrupt
+flag restored. Do not assume interrupting a Java 11 call aborts network activity.
+Retain a finite response deadline; disabling it removes that expiry safeguard.
+Resolve this Java 11 behavior in release review before production use.
+HTTP/2, other OS/JDKs, Android and other Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
 failure does not establish whether the provider accepted a request.
 
 Model `toString()` and routine `ApiException` formatting redact values. Explicit
