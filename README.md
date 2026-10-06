@@ -5,8 +5,8 @@ This artifact is not published to Maven Central. Publisher verification and rele
 review are pending. Support and maintenance: dev@mailchannels.com.
 
 The SDK implements all 42 operations in the MailChannels Email API 1.7.1 schema.
-Local fixture checks pass on Linux x64 Temurin 11 and 21; a Kotlin 2.2.21 consumer
-also passes on both runtimes. These checks do not establish live provider conformance.
+Local fixture checks pass on Linux x64 Temurin 11, 17, 21 and 25; a Kotlin 2.2.21
+consumer also passes on Java 11 and 21. These checks do not establish live provider conformance.
 
 ## Usage
 
@@ -45,7 +45,7 @@ the response deadline. Custom HttpClient builders can change TLS, redirects and
 connection settings. Retain HTTPS and certificate verification in production.
 
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 11/21. Cancellation before headers, HTTP/2, other OS/JDKs, Android and other
+Java 11/17/21/25. Cancellation before headers, HTTP/2, other OS/JDKs, Android and other
 Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
 failure does not establish whether the provider accepted a request.
 
