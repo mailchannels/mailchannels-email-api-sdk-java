@@ -1,0 +1,35 @@
+name: Java SDK validation
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - maven@sha256:7bb84a451705605a47d24eb844d4d9ab03e33e131a507db76aafe25db3907f64
+          - maven@sha256:1a352420f7aba21f5ad08df31bab55f74c013fb491f1ae8ab1dd7ff9ed698584
+          - maven@sha256:99e61abcff91a9b1333463bd8451fb18495d6eba9250ac66a338b518f8278320
+          - maven@sha256:93b8a14ea2f412782e4e842651273b4d903e35cc496284f178fbbe2d67d00976
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: python -m pip install cryptography==45.0.3
+      - run: bash scripts/test.sh
+        env:
+          SDK_JAVA_IMAGE: ${{ matrix.image }}
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          persist-credentials: false
+      - run: python -m pip install PyYAML==6.0.3
+      - run: bash scripts/regenerate.sh && git diff --exit-code
+      - run: bash scripts/pack.sh
+      - run: bash scripts/docs.sh
+      - run: bash scripts/audit.sh
+      - run: bash scripts/kotlin.sh
