@@ -70,9 +70,37 @@ public final class CancellationProbe {
       }
     }
   }
+  static void alreadyInterrupted() throws Exception {
+    var failure = new AtomicReference<Throwable>();
+    try (var listener = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
+      listener.setSoTimeout(1500);
+      var client = new ApiClient().setHttpClientBuilder(ApiClient.createDefaultHttpClientBuilder().version(HttpClient.Version.HTTP_1_1))
+          .setScheme("http").setHost("127.0.0.1").setPort(listener.getLocalPort()).setBasePath("")
+          .setReadTimeout(Duration.ofSeconds(2));
+      var caller = new Thread(() -> {
+        Thread.currentThread().interrupt();
+        try {
+          new UsageApi(client).getUsage("fixture-key");
+          failure.set(new AssertionError("already-interrupted call succeeded"));
+        } catch (ApiException error) {
+          if (!(error.getRawCause() instanceof InterruptedException) || !Thread.currentThread().isInterrupted())
+            failure.set(new AssertionError("interrupt cause/flag not preserved"));
+        } catch (Throwable error) { failure.set(error); }
+      }, "already-interrupted-caller");
+      caller.start(); caller.join(3000);
+      ContractFixture.require(!caller.isAlive(), "already-interrupted caller did not return");
+      ContractFixture.require(failure.get() == null, "caller failure: " + failure.get());
+      try (var unexpected = listener.accept()) {
+        throw new AssertionError("already-interrupted call opened a network connection");
+      } catch (java.net.SocketTimeoutException expected) {
+        System.out.println("PASS already-interrupted call: no peer connection; cause and flag preserved");
+      }
+    }
+  }
   public static void main(String[] args) throws Exception {
+    alreadyInterrupted();
     fixture(true);
     fixture(false);
-    System.out.println("Java cancellation checks passed: 2");
+    System.out.println("Java cancellation checks passed: 3");
   }
 }

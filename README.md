@@ -44,6 +44,11 @@ instances; they capture client settings. An explicit null read timeout disables
 the response deadline. Custom HttpClient builders can change TLS, redirects and
 connection settings. Retain HTTPS and certificate verification in production.
 
+Calls entered with the thread interrupt flag already set are rejected before
+transport dispatch; generated API methods restore the flag and expose
+`InterruptedException` as the `ApiException` cause. Interruption racing with
+dispatch is still subject to the runtime limitations below.
+
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
 Java 11/17/21/25. Before response headers arrive, deadline cancellation closes the
 HTTP/1.1 peer connection on all four tested runtimes. Caller interruption closes
