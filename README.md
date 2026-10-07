@@ -44,9 +44,26 @@ instances; they capture client settings. An explicit null read timeout disables
 the response deadline. Custom HttpClient builders can change TLS, redirects and
 connection settings. Retain HTTPS and certificate verification in production.
 
+Calls entered with the thread interrupt flag already set are rejected before
+transport dispatch; generated API methods restore the flag and expose
+`InterruptedException` as the `ApiException` cause. Interruption racing with
+dispatch is still subject to the runtime limitations below.
+
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 11/17/21/25. Cancellation before headers, HTTP/2, other OS/JDKs, Android and other
-Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
+Java 11/17/21/25. Before response headers arrive, deadline cancellation closes the
+HTTP/1.1 peer connection on all four tested runtimes. Caller interruption closes
+it on Java 17/21/25, but **Java 11 leaves the peer connection open during the
+three-second observation window**, even though the caller returns with its interrupt
+flag restored. Do not assume interrupting a Java 11 call aborts network activity.
+A separate interruption-plus-deadline probe on Java 11.0.32.1 confirmed peer
+closure after about two seconds with a two-second request deadline, even though
+the caller had already returned on interruption. Retain a finite response deadline;
+disabling it removes that expiry safeguard. This bounds the observed lingering
+connection; it does not provide prompt cancellation or prove a send was unaccepted.
+OpenJDK tracks the older cancellation behavior in
+[JDK-8245462](https://bugs.openjdk.org/browse/JDK-8245462), fixed in Java 16.
+Resolve this Java 11 behavior in release review before production use.
+HTTP/2, other OS/JDKs, Android and other Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
 failure does not establish whether the provider accepted a request.
 
 Model `toString()` and routine `ApiException` formatting redact values. Explicit
