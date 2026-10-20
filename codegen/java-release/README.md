@@ -51,15 +51,15 @@ transport dispatch; generated API methods restore the flag and expose
 dispatch is still subject to the runtime limitations below.
 
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 17/21/25. Before response headers arrive, both deadline cancellation and
-caller interruption close the HTTP/1.1 peer connection on all three runtimes.
+Java 17/21/25. Before response headers arrive, a finite response deadline and
+caller interruption both close the HTTP/1.1 peer connection on all three runtimes.
 Java 11 is not supported: its `java.net.http` client leaves the connection open
-after caller interruption until the request deadline expires
+after caller interruption until the deadline
 ([JDK-8245462](https://bugs.openjdk.org/browse/JDK-8245462), fixed in Java 16).
-Builds enforce Java 17, and the artifact targets Java 17 bytecode. Retain a finite
-response deadline; disabling it removes the expiry safeguard for stalled requests.
-HTTP/2, other OS/JDKs, Android and other Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
-failure does not establish whether the provider accepted a request.
+Builds enforce Java 17, and the artifact targets Java 17 bytecode. Keep a finite
+response deadline. HTTP/2, other OS/JDKs, Android and other Kotlin versions remain
+unvalidated. Do not retry send operations blindly: a transport failure does not
+establish whether the provider accepted a request.
 
 Model `toString()` and routine `ApiException` formatting redact values. Explicit
 serialization, getters, `getRawMessage()`, `getRawCause()`, response headers and
