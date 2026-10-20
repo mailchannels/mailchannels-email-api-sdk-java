@@ -23,6 +23,9 @@ public final class BoundedHttpTransport {
 
   public static HttpResponse<InputStream> send(HttpClient client, HttpRequest request)
       throws IOException, InterruptedException {
+    if (Thread.interrupted()) {
+      throw new InterruptedException("MailChannels request cancelled before dispatch");
+    }
     AtomicBoolean cancelled = new AtomicBoolean();
     AtomicReference<Flow.Subscription> subscription = new AtomicReference<>();
     HttpResponse.BodyHandler<InputStream> handler = info -> new HttpResponse.BodySubscriber<InputStream>() {
