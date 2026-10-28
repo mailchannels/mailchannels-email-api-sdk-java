@@ -16,22 +16,28 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /** Observe cancellation at the peer socket, not merely the returned exception. */
 public final class CancellationProbe {
-  static void fixture(boolean interrupt) throws Exception {
+  /** Pre-header interruption may leave Java 11 connections open until the deadline (JDK-8245462). */
+  static final boolean LINGERING_INTERRUPT = Runtime.version().feature() < 16;
+
+  static void fixture(boolean interrupt, boolean preHeader) throws Exception {
     var started = new CountDownLatch(1);
     var closed = new CountDownLatch(1);
     var serverFailure = new AtomicReference<Throwable>();
     var callerFailure = new AtomicReference<Throwable>();
     try (var listener = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
       listener.setSoTimeout(5000);
+      Duration deadline = Duration.ofSeconds(!interrupt ? 1 : preHeader ? 4 : 20);
       var peer = new Thread(() -> {
         try (var socket = listener.accept()) {
-          socket.setSoTimeout(4000);
+          socket.setSoTimeout(8000);
           var input = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.US_ASCII));
           String line = input.readLine();
           ContractFixture.require(line != null && line.startsWith("GET /usage HTTP/1.1"), "fixture request");
           while ((line = input.readLine()) != null && !line.isEmpty()) {}
-          socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\n\r\n{").getBytes(StandardCharsets.US_ASCII));
-          socket.getOutputStream().flush();
+          if (!preHeader) {
+            socket.getOutputStream().write(("HTTP/1.1 200 OK\r\nContent-Type: application/json\r\nContent-Length: 2\r\n\r\n{").getBytes(StandardCharsets.US_ASCII));
+            socket.getOutputStream().flush();
+          }
           started.countDown();
           try {
             ContractFixture.require(input.read() == -1, "cancelled connection sent unexpected bytes");
@@ -41,7 +47,7 @@ public final class CancellationProbe {
       }, "fixture-peer");
       var client = new ApiClient().setHttpClientBuilder(ApiClient.createDefaultHttpClientBuilder().version(HttpClient.Version.HTTP_1_1))
         .setScheme("http").setHost("127.0.0.1").setPort(listener.getLocalPort()).setBasePath("")
-        .setReadTimeout(Duration.ofSeconds(interrupt ? 20 : 1));
+        .setReadTimeout(deadline);
       var caller = new Thread(() -> {
         try {
           new UsageApi(client).getUsage("fixture-key");
@@ -60,19 +66,57 @@ public final class CancellationProbe {
         caller.join(3000);
         ContractFixture.require(!caller.isAlive(), "caller did not terminate");
         ContractFixture.require(callerFailure.get() == null, "caller failure: " + callerFailure.get());
-        ContractFixture.require(closed.await(3, TimeUnit.SECONDS), "cancelled request left peer socket open");
+        String stage = preHeader ? "pre-header" : "body";
+        if (interrupt && preHeader && LINGERING_INTERRUPT) {
+          ContractFixture.require(!closed.await(3, TimeUnit.SECONDS), "Java 11 pre-header interrupt now closes the peer; update README");
+          ContractFixture.require(closed.await(3, TimeUnit.SECONDS), "deadline did not close lingering interrupted connection");
+        } else {
+          // Pre-header interruption must close before its deadline could do so.
+          ContractFixture.require(closed.await(interrupt && preHeader ? 1 : 3, TimeUnit.SECONDS), "cancelled " + stage + " request left peer socket open");
+        }
         peer.join(1000);
         ContractFixture.require(serverFailure.get() == null, "peer failure: " + serverFailure.get());
-        System.out.println("PASS " + (interrupt ? "interrupt flag restored" : "deadline raised") + "; stalled HTTP/1.1 peer socket closed");
+        System.out.println("PASS " + stage + " " + (interrupt ? "interrupt flag restored" : "deadline raised") + "; stalled HTTP/1.1 peer socket closed"
+          + (interrupt && preHeader && LINGERING_INTERRUPT ? " by deadline after lingering 3s" : ""));
       } finally {
         caller.interrupt(); listener.close();
         caller.join(3000); peer.join(5000);
       }
     }
   }
+  static void alreadyInterrupted() throws Exception {
+    var failure = new AtomicReference<Throwable>();
+    try (var listener = new ServerSocket(0, 1, InetAddress.getByName("127.0.0.1"))) {
+      listener.setSoTimeout(1500);
+      var client = new ApiClient().setHttpClientBuilder(ApiClient.createDefaultHttpClientBuilder().version(HttpClient.Version.HTTP_1_1))
+          .setScheme("http").setHost("127.0.0.1").setPort(listener.getLocalPort()).setBasePath("")
+          .setReadTimeout(Duration.ofSeconds(2));
+      var caller = new Thread(() -> {
+        Thread.currentThread().interrupt();
+        try {
+          new UsageApi(client).getUsage("fixture-key");
+          failure.set(new AssertionError("already-interrupted call succeeded"));
+        } catch (ApiException error) {
+          if (!(error.getRawCause() instanceof InterruptedException) || !Thread.currentThread().isInterrupted())
+            failure.set(new AssertionError("interrupt cause/flag not preserved"));
+        } catch (Throwable error) { failure.set(error); }
+      }, "already-interrupted-caller");
+      caller.start(); caller.join(3000);
+      ContractFixture.require(!caller.isAlive(), "already-interrupted caller did not return");
+      ContractFixture.require(failure.get() == null, "caller failure: " + failure.get());
+      try (var unexpected = listener.accept()) {
+        throw new AssertionError("already-interrupted call opened a network connection");
+      } catch (java.net.SocketTimeoutException expected) {
+        System.out.println("PASS already-interrupted call: no peer connection; cause and flag preserved");
+      }
+    }
+  }
   public static void main(String[] args) throws Exception {
-    fixture(true);
-    fixture(false);
-    System.out.println("Java cancellation checks passed: 2");
+    alreadyInterrupted();
+    fixture(true, false);
+    fixture(false, false);
+    fixture(true, true);
+    fixture(false, true);
+    System.out.println("Java cancellation checks passed: 5");
   }
 }

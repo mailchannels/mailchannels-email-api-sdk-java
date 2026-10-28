@@ -44,10 +44,20 @@ instances; they capture client settings. An explicit null read timeout disables
 the response deadline. Custom HttpClient builders can change TLS, redirects and
 connection settings. Retain HTTPS and certificate verification in production.
 
+Calls entered with the thread interrupt flag already set are rejected before
+transport dispatch; generated API methods restore the flag and expose
+`InterruptedException` as the `ApiException` cause. Interruption racing with
+dispatch is still subject to the runtime limitations below.
+
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 11/17/21/25. Cancellation before headers, HTTP/2, other OS/JDKs, Android and other
-Kotlin versions remain unvalidated. Do not retry send operations blindly: a transport
-failure does not establish whether the provider accepted a request.
+Java 11/17/21/25. Before response headers arrive, a finite response deadline
+closes the HTTP/1.1 peer connection on all four runtimes; caller interruption
+also closes it on Java 17/21/25. On Java 11 an interrupted call returns with its
+flag restored but leaves the connection open until the deadline (about two
+seconds with a two-second deadline; [JDK-8245462](https://bugs.openjdk.org/browse/JDK-8245462),
+fixed in Java 16). Keep a finite deadline on Java 11. HTTP/2, other OS/JDKs,
+Android and other Kotlin versions remain unvalidated. Do not retry send operations
+blindly: a transport failure does not establish whether the provider accepted a request.
 
 Model `toString()` and routine `ApiException` formatting redact values. Explicit
 serialization, getters, `getRawMessage()`, `getRawCause()`, response headers and
