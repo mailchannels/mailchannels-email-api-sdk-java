@@ -7,7 +7,9 @@ schema except explicit operation names and the reviewed 64-bit batch-ID hint.
 
 Use Docker on Linux. Install Python PyYAML 6.0.3 and cryptography 45.0.3 for generation
 and ephemeral TLS fixtures. Run the scripts documented in README before committing.
-`SDK_JAVA_IMAGE` selects a pinned Maven/JDK image; CI tests Java 11, 17, 21 and 25.
+`SDK_JAVA_IMAGE` selects a pinned Maven/JDK image; CI tests Java 17, 21 and 25.
+Java 17 is the minimum runtime; do not lower it without resolving the Java 11
+pre-header interruption limitation recorded in README.
 The fixture suites run with external networking disabled. Packaging and dependency
 resolution require network access, but never MailChannels credentials.
 

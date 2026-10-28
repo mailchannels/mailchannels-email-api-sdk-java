@@ -16,6 +16,9 @@ text,n=re.subn(r'    <scm>.*?</scm>', '''    <scm>
     </scm>''',text,count=1,flags=re.S);assert n==1
 text,n=re.subn(r'    <licenses>.*?</licenses>', '''    <licenses><license><name>MIT License</name><url>https://opensource.org/license/mit/</url><distribution>repo</distribution></license></licenses>''',text,count=1,flags=re.S);assert n==1
 text,n=re.subn(r'    <developers>.*?</developers>', '''    <developers><developer><name>MailChannels</name><email>dev@mailchannels.com</email><organization>MailChannels</organization><organizationUrl>https://www.mailchannels.com/</organizationUrl></developer></developers>''',text,count=1,flags=re.S);assert n==1
+for old,new in [('        <maven.compiler.source>11</maven.compiler.source>\n        <maven.compiler.target>11</maven.compiler.target>\n','        <maven.compiler.release>17</maven.compiler.release>\n'),('                                <requireJavaVersion>\n                                    <version>11</version>','                                <requireJavaVersion>\n                                    <version>17</version>')]:
+    assert text.count(old)==1,old
+    text=text.replace(old,new)
 p.write_text(text)
 shutil.copy2(source/'LICENSE',sdk/'LICENSE')
 shutil.copy2(source/'README.md',sdk/'README.md')

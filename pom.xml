@@ -35,7 +35,7 @@
                                     <version>3</version>
                                 </requireMavenVersion>
                                 <requireJavaVersion>
-                                    <version>11</version>
+                                    <version>17</version>
                                 </requireJavaVersion>
                             </rules>
                         </configuration>
@@ -233,8 +233,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>11</maven.compiler.source>
-        <maven.compiler.target>11</maven.compiler.target>
+        <maven.compiler.release>17</maven.compiler.release>
         <jackson-version>2.21.7</jackson-version>
         <jackson-annotations-version>2.21</jackson-annotations-version>
         <jackson-databind-nullable-version>0.2.12</jackson-databind-nullable-version>

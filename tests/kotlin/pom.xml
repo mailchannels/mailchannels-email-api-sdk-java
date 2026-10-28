@@ -9,7 +9,7 @@
   <build><plugins>
     <plugin><groupId>org.jetbrains.kotlin</groupId><artifactId>kotlin-maven-plugin</artifactId><version>${kotlin.version}</version>
       <executions><execution><id>compile</id><phase>compile</phase><goals><goal>compile</goal></goals></execution></executions>
-      <configuration><jvmTarget>11</jvmTarget><sourceDirs><sourceDir>${project.basedir}/src/main/kotlin</sourceDir></sourceDirs><args><arg>-Xjsr305=strict</arg></args></configuration>
+      <configuration><jvmTarget>17</jvmTarget><sourceDirs><sourceDir>${project.basedir}/src/main/kotlin</sourceDir></sourceDirs><args><arg>-Xjsr305=strict</arg></args></configuration>
     </plugin>
   </plugins></build>
 </project>

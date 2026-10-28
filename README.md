@@ -5,8 +5,9 @@ This artifact is not published to Maven Central. Publisher verification and rele
 review are pending. Support and maintenance: dev@mailchannels.com.
 
 The SDK implements all 42 operations in the MailChannels Email API 1.7.1 schema.
-Local fixture checks pass on Linux x64 Temurin 11, 17, 21 and 25; a Kotlin 2.2.21
-consumer also passes on Java 11 and 21. These checks do not establish live provider conformance.
+Requires Java 17 or later. Local fixture checks pass on Linux x64 Temurin 17, 21
+and 25; a Kotlin 2.2.21 consumer also passes on Java 21. These checks do not
+establish live provider conformance.
 
 ## Usage
 
@@ -50,14 +51,15 @@ transport dispatch; generated API methods restore the flag and expose
 dispatch is still subject to the runtime limitations below.
 
 Stalled HTTP/1.1 body cancellation and interrupt-flag preservation are tested on
-Java 11/17/21/25. Before response headers arrive, a finite response deadline
-closes the HTTP/1.1 peer connection on all four runtimes; caller interruption
-also closes it on Java 17/21/25. On Java 11 an interrupted call returns with its
-flag restored but leaves the connection open until the deadline (about two
-seconds with a two-second deadline; [JDK-8245462](https://bugs.openjdk.org/browse/JDK-8245462),
-fixed in Java 16). Keep a finite deadline on Java 11. HTTP/2, other OS/JDKs,
-Android and other Kotlin versions remain unvalidated. Do not retry send operations
-blindly: a transport failure does not establish whether the provider accepted a request.
+Java 17/21/25. Before response headers arrive, a finite response deadline and
+caller interruption both close the HTTP/1.1 peer connection on all three runtimes.
+Java 11 is not supported: its `java.net.http` client leaves the connection open
+after caller interruption until the deadline
+([JDK-8245462](https://bugs.openjdk.org/browse/JDK-8245462), fixed in Java 16).
+Builds enforce Java 17, and the artifact targets Java 17 bytecode. Keep a finite
+response deadline. HTTP/2, other OS/JDKs, Android and other Kotlin versions remain
+unvalidated. Do not retry send operations blindly: a transport failure does not
+establish whether the provider accepted a request.
 
 Model `toString()` and routine `ApiException` formatting redact values. Explicit
 serialization, getters, `getRawMessage()`, `getRawCause()`, response headers and
@@ -70,7 +72,7 @@ Build with `mvn -Dmaven.test.skip=true package`. Generated placeholder tests are
 not the validation suite. Run `bash scripts/test.sh`, `bash scripts/kotlin.sh`, `bash scripts/docs.sh`,
 `bash scripts/pack.sh` and `bash scripts/audit.sh` before release. Reproduce sources
 with `bash scripts/regenerate.sh`; it requires Docker and Python PyYAML 6.0.3.
-TLS tests require Python cryptography. CI checks all four Java runtimes. Jackson core/databind/jsr310 are pinned to 2.21.7;
+TLS tests require Python cryptography. CI checks Java 17, 21 and 25. Jackson core/databind/jsr310 are pinned to 2.21.7;
 the recorded OSV audit covers resolved SDK dependencies, not build tools or the JDK.
 
 MIT license. No automated publication is configured in this candidate.
