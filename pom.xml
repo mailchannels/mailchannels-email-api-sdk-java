@@ -5,7 +5,7 @@
     <artifactId>mailchannels-email-api</artifactId>
     <packaging>jar</packaging>
     <name>MailChannels Email API SDK</name>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.1.0</version>
     <url>https://www.mailchannels.com/</url>
     <description>MailChannels Email API client for Java and Kotlin</description>
     <scm>

@@ -2,7 +2,7 @@
   "library": "native",
   "groupId": "com.mailchannels",
   "artifactId": "mailchannels-email-api",
-  "artifactVersion": "0.1.0-SNAPSHOT",
+  "artifactVersion": "0.1.0",
   "apiPackage": "com.mailchannels.api",
   "modelPackage": "com.mailchannels.model",
   "invokerPackage": "com.mailchannels.client",
