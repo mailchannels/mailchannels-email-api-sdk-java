@@ -5,7 +5,7 @@ import sys
 import zipfile
 from pathlib import Path
 sdk=Path(sys.argv[1]); output=Path(sys.argv[2])
-base='mailchannels-email-api-0.1.0-SNAPSHOT'
+base='mailchannels-email-api-0.1.0'
 paths={'main':sdk/'target'/f'{base}.jar','sources':sdk/'target'/f'{base}-sources.jar','javadoc':sdk/'target'/f'{base}-javadoc.jar'}
 java=sdk/'src/main/java'
 sources=sorted(java.rglob('*.java'))
@@ -28,7 +28,7 @@ with zipfile.ZipFile(paths['main']) as binary, zipfile.ZipFile(paths['sources'])
     assert b'SendEmailResult' in docs.read('com/mailchannels/api/SendApi.html')
     for label,z in [('main',binary),('sources',source)]:
         assert not any(n.startswith(('target/','src/test/','.git/')) for n in z.namelist()),f'Unexpected build/test metadata in {label}'
-report={'status':'Unreleased local snapshot; unsigned and not published','java_sources_verified':len(sources),'checks':['Every maintained Java source byte-matches source JAR','Every source has main bytecode and Javadoc page','Status-aware wrapper docs present','MIT license embedded in main/source JAR','Embedded POM matches reviewed metadata and Jackson patch'],'artifacts':[]}
+report={'status':'Local release build; unsigned until the release bundle is signed','java_sources_verified':len(sources),'checks':['Every maintained Java source byte-matches source JAR','Every source has main bytecode and Javadoc page','Status-aware wrapper docs present','MIT license embedded in main/source JAR','Embedded POM matches reviewed metadata and Jackson patch'],'artifacts':[]}
 for kind,p in paths.items():
     report['artifacts'].append({'kind':kind,'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
 output.write_text(json.dumps(report,indent=2)+'\n')

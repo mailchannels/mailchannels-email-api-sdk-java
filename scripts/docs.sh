@@ -5,6 +5,6 @@ python "$root/scripts/check-java-examples.py" "$root" "$root/.build/doc-examples
 docker run "${args[@]}" --network none "$image" bash -c '
 set -euo pipefail
 mkdir -p target/doc-example-classes
-javac --release 17 -cp "target/mailchannels-email-api-0.1.0-SNAPSHOT.jar:$(cat target/probe-classpath.txt)" -d target/doc-example-classes .build/doc-examples/*.java
+javac --release 17 -cp "target/mailchannels-email-api-0.1.0.jar:$(cat target/probe-classpath.txt)" -d target/doc-example-classes .build/doc-examples/*.java
 '
 echo '84 API examples compile; none executed'

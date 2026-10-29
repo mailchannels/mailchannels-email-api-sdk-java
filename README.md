@@ -1,8 +1,17 @@
 # MailChannels Email API SDK for Java and Kotlin
 
-Unreleased candidate: `com.mailchannels:mailchannels-email-api:0.1.0-SNAPSHOT`.
-This artifact is not published to Maven Central. Publisher verification and release
-review are pending. Support and maintenance: dev@mailchannels.com.
+Maven Central: `com.mailchannels:mailchannels-email-api:0.1.0`.
+Support and maintenance: dev@mailchannels.com.
+
+```xml
+<dependency>
+  <groupId>com.mailchannels</groupId>
+  <artifactId>mailchannels-email-api</artifactId>
+  <version>0.1.0</version>
+</dependency>
+```
+
+Gradle (Kotlin DSL): `implementation("com.mailchannels:mailchannels-email-api:0.1.0")`.
 
 The SDK implements all 42 operations in the MailChannels Email API 1.7.1 schema.
 Requires Java 17 or later. Local fixture checks pass on Linux x64 Temurin 17, 21
@@ -11,7 +20,7 @@ establish live provider conformance.
 
 ## Usage
 
-After obtaining the reviewed artifact, construct `new ApiClient()` and pass it to
+Add the dependency, then construct `new ApiClient()` and pass it to
 an API class such as `new SendApi(client)`. The default endpoint is
 `https://api.mailchannels.net/tx/v1`. Obtain the API key from your secret manager
 and supply it to the method's `xApiKey` argument. Never embed it in source.
