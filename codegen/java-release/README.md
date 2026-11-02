@@ -1,7 +1,7 @@
 # MailChannels Email API SDK for Java and Kotlin
 
 Maven Central: `com.mailchannels:mailchannels-email-api:0.1.0`.
-Support and maintenance: dev@mailchannels.com.
+See [Support](#support) for how to get help.
 
 ```xml
 <dependency>
@@ -83,5 +83,11 @@ not the validation suite. Run `bash scripts/test.sh`, `bash scripts/kotlin.sh`, 
 with `bash scripts/regenerate.sh`; it requires Docker and Python PyYAML 6.0.3.
 TLS tests require Python cryptography. CI checks Java 17, 21 and 25. Jackson core/databind/jsr310 are pinned to 2.21.7;
 the recorded OSV audit covers resolved SDK dependencies, not build tools or the JDK.
+
+## Support
+
+This project is supported by the MailChannels team on a best-effort basis. The best way to get support is to file an issue on GitHub: https://github.com/mailchannels/mailchannels-email-api-sdk-java/issues
+
+If you are a MailChannels customer and have a problem with the operation of the MailChannels service, you can get support at https://support.mailchannels.com/
 
 MIT license. No automated publication is configured in this candidate.

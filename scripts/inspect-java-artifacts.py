@@ -19,16 +19,20 @@ with zipfile.ZipFile(paths['main']) as binary, zipfile.ZipFile(paths['sources'])
     license=(sdk/'LICENSE').read_bytes()
     assert binary.read('META-INF/LICENSE')==license
     assert source.read('META-INF/LICENSE')==license
+    readme=(sdk/'README.md').read_bytes()
+    assert binary.read('META-INF/README.md')==readme
+    assert source.read('META-INF/README.md')==readme
     pom=binary.read('META-INF/maven/com.mailchannels/mailchannels-email-api/pom.xml')
     assert pom==(sdk/'pom.xml').read_bytes(), 'Embedded POM mismatch'
     assert b'2.21.7' in pom and b'dev@mailchannels.com' in pom
+    assert b'<url>https://github.com/mailchannels/mailchannels-email-api-sdk-java/issues</url>' in pom
     for name in ['SendEmailResult','CreateTrackingResult','UpdateTrackingResult']:
         page=docs.read(f'com/mailchannels/model/{name}.html')
         assert b'getStatusCode' in page and b'getUnknown' in page
     assert b'SendEmailResult' in docs.read('com/mailchannels/api/SendApi.html')
     for label,z in [('main',binary),('sources',source)]:
         assert not any(n.startswith(('target/','src/test/','.git/')) for n in z.namelist()),f'Unexpected build/test metadata in {label}'
-report={'status':'Local release build; unsigned until the release bundle is signed','java_sources_verified':len(sources),'checks':['Every maintained Java source byte-matches source JAR','Every source has main bytecode and Javadoc page','Status-aware wrapper docs present','MIT license embedded in main/source JAR','Embedded POM matches reviewed metadata and Jackson patch'],'artifacts':[]}
+report={'status':'Local release build; unsigned until the release bundle is signed','java_sources_verified':len(sources),'checks':['Every maintained Java source byte-matches source JAR','Every source has main bytecode and Javadoc page','Status-aware wrapper docs present','MIT license and README embedded in main/source JAR','Embedded POM matches reviewed metadata and Jackson patch'],'artifacts':[]}
 for kind,p in paths.items():
     report['artifacts'].append({'kind':kind,'filename':p.name,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()})
 output.write_text(json.dumps(report,indent=2)+'\n')
