@@ -13,6 +13,10 @@
         <developerConnection>scm:git:https://github.com/mailchannels/mailchannels-email-api-sdk-java.git</developerConnection>
         <url>https://github.com/mailchannels/mailchannels-email-api-sdk-java</url>
     </scm>
+    <issueManagement>
+        <system>GitHub</system>
+        <url>https://github.com/mailchannels/mailchannels-email-api-sdk-java/issues</url>
+    </issueManagement>
 
     <licenses><license><name>MIT License</name><url>https://opensource.org/license/mit/</url><distribution>repo</distribution></license></licenses>
 
