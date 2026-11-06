@@ -7,7 +7,7 @@ sdk=Path(sys.argv[1]); source=Path(__file__).parent/'java-release'
 p=sdk/'pom.xml';text=p.read_text()
 assert '<name>mailchannels-email-api</name>' in text
 text=text.replace('<name>mailchannels-email-api</name>','<name>MailChannels Email API SDK</name>',1)
-text=text.replace('<description>OpenAPI Java</description>','<description>MailChannels Email API client for Java and Kotlin</description>',1)
+text=text.replace('<description>OpenAPI Java</description>','<description>Java and Kotlin library for MailChannels Email API: send transactional email from your app, register delivery webhooks, and manage sub-accounts when your users send through your app.</description>',1)
 text=text.replace('<url>https://github.com/openapitools/openapi-generator</url>','<url>https://www.mailchannels.com/</url>',1)
 text,n=re.subn(r'    <scm>.*?</scm>', '''    <scm>
         <connection>scm:git:https://github.com/mailchannels/mailchannels-email-api-sdk-java.git</connection>
