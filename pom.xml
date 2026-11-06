@@ -7,7 +7,7 @@
     <name>MailChannels Email API SDK</name>
     <version>0.1.0</version>
     <url>https://www.mailchannels.com/</url>
-    <description>MailChannels Email API client for Java and Kotlin</description>
+    <description>Java and Kotlin library for MailChannels Email API: send transactional email from your app, register delivery webhooks, and manage sub-accounts when your users send through your app.</description>
     <scm>
         <connection>scm:git:https://github.com/mailchannels/mailchannels-email-api-sdk-java.git</connection>
         <developerConnection>scm:git:https://github.com/mailchannels/mailchannels-email-api-sdk-java.git</developerConnection>

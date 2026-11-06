@@ -1,5 +1,10 @@
 # MailChannels Email API SDK for Java and Kotlin
 
+A Java and Kotlin library for MailChannels Email API. Send transactional email, such as
+sign-up confirmations, password resets, receipts and notifications, from your Java or
+Kotlin app, register delivery webhooks and fetch the key that signs them, and manage
+sub-accounts when your users send through your app.
+
 Maven Central: `com.mailchannels:mailchannels-email-api:0.1.0`.
 See [Support](#support) for how to get help.
 
