@@ -11,6 +11,7 @@ import java.util.List;
 public final class SendResponseProbe {
   interface Check { void run(ApiClient client) throws Exception; }
   static int passed;
+  static String userAgent;
   static void require(boolean condition, String message) { if (!condition) throw new AssertionError(message); }
   static MailSendBody body() { return new MailSendBody().from(new EmailAddress().email("sender@example.invalid"))
     .personalizations(List.of(new Personalization().to(List.of(new EmailAddress().email("recipient@example.invalid")))))
@@ -19,6 +20,7 @@ public final class SendResponseProbe {
     HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1",0),0);
     server.createContext(path, exchange -> {
       exchange.getRequestBody().readAllBytes();
+      userAgent = exchange.getRequestHeaders().getFirst("User-Agent");
       byte[] bytes = json.getBytes(StandardCharsets.UTF_8);
       exchange.getResponseHeaders().set("Content-Type","application/json");
       exchange.sendResponseHeaders(status,bytes.length == 0 ? -1 : bytes.length);
@@ -36,6 +38,13 @@ public final class SendResponseProbe {
       var data = r.getData(); var results = data.getAccepted();
       require(r.getStatusCode()==202 && data.getDryRun()==null && results.getRequestId().equals("fixture-request") && results.getResults().size()==2 && results.getResults().get(1).getReason().equals("fixture rejection"),"202 results lost");
       require(!data.toString().contains("fixture-request"),"wrapper diagnostics");
+      // Bump with artifactVersion in config/java.json.
+      require("mailchannels-java/0.1.0".equals(userAgent),"User-Agent " + userAgent);
+    });
+    fixture("/send",202,"",client -> {
+      client.setRequestInterceptor(builder -> builder.header("User-Agent","mailchannels-fixture/1.0"));
+      new SendApi(client).sendEmailWithHttpInfo("fixture-key",body(),null);
+      require("mailchannels-fixture/1.0 mailchannels-java/0.1.0".equals(userAgent),"integration User-Agent first: " + userAgent);
     });
     fixture("/send",200,"{\"data\":[\"rendu été\"]}",client -> {
       var r = new SendApi(client).sendEmail("fixture-key",body(),true);
