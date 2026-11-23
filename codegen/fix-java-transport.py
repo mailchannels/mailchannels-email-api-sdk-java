@@ -1,4 +1,5 @@
 """Apply complete-body deadlines to all operations of the pinned native generator."""
+import json
 import sys
 from pathlib import Path
 sdk = Path(sys.argv[1]) / 'src/main/java/com/mailchannels'
@@ -23,6 +24,7 @@ assert text.count('return HttpClient.newBuilder();') == 1
 text = text.replace('return HttpClient.newBuilder();', '''return HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10))
         .followRedirects(HttpClient.Redirect.NEVER);''')
 p.write_text(text)
+version = json.loads((source / 'config/java.json').read_text())['artifactVersion']
 (sdk / 'client/BoundedHttpTransport.java').write_text(
-    (source / 'java-transport/BoundedHttpTransport.java').read_text())
+    (source / 'java-transport/BoundedHttpTransport.java').read_text().replace('@ARTIFACT_VERSION@', version))
 print(f'Applied complete-response deadlines to {count} operations')

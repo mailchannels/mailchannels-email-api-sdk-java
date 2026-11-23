@@ -21,8 +21,12 @@ import java.util.concurrent.TimeoutException;
 public final class BoundedHttpTransport {
   private BoundedHttpTransport() {}
 
+  // fix-java-transport.py fills in artifactVersion from config/java.json.
+  static final String USER_AGENT = "mailchannels-java/@ARTIFACT_VERSION@";
+
   public static HttpResponse<InputStream> send(HttpClient client, HttpRequest request)
       throws IOException, InterruptedException {
+    request = withUserAgent(request);
     if (Thread.interrupted()) {
       throw new InterruptedException("MailChannels request cancelled before dispatch");
     }
@@ -65,5 +69,12 @@ public final class BoundedHttpTransport {
       if (cause instanceof Error) throw (Error) cause;
       throw new IOException("MailChannels transport failed", cause);
     }
+  }
+
+  /** A User-Agent set by an integration (for example through a request interceptor) goes first. */
+  static HttpRequest withUserAgent(HttpRequest request) {
+    String value = request.headers().firstValue("User-Agent").map(caller -> caller + " " + USER_AGENT).orElse(USER_AGENT);
+    return HttpRequest.newBuilder(request, (name, ignored) -> !name.equalsIgnoreCase("User-Agent"))
+        .header("User-Agent", value).build();
   }
 }
